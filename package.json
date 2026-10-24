@@ -1,18 +1,14 @@
 {
-  "name": "kie-claude-remote-mcp",
+  "name": "kie-mcp-server",
   "version": "1.0.0",
-  "private": true,
+  "description": "Kie.ai MCP Server for Claude",
+  "main": "index.js",
   "type": "module",
-  "description": "Remote MCP bridge for Claude to access KIE.ai Anthropic-compatible chat models",
   "scripts": {
-    "start": "node server.js"
-  },
-  "engines": {
-    "node": ">=20"
+    "start": "node index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "express": "^5.1.0",
-    "zod": "^3.25.0"
+    "@modelcontextprotocol/sdk": "latest",
+    "express": "latest"
   }
 }
