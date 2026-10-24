@@ -1,5 +1,5 @@
 import express from 'express';
-import { randomUUID } from 'node:crypto';
+import { timingSafeEqual } from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
@@ -10,6 +10,12 @@ const PORT = Number(process.env.PORT || 3000);
 const KIE_API_KEY = process.env.KIE_API_KEY;
 const CONNECTOR_TOKEN = process.env.CONNECTOR_TOKEN;
 const KIE_BASE = 'https://api.kie.ai/anthropic';
+
+function tokenMatches(header) {
+  const a = Buffer.from(header || '');
+  const b = Buffer.from(`Bearer ${CONNECTOR_TOKEN}`);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 app.get('/', (_req, res) => res.status(200).send('KIE.ai Claude MCP bridge is running. MCP endpoint: /mcp'));
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'kie-claude-remote-mcp' }));
@@ -61,8 +67,7 @@ app.post('/mcp', async (req, res) => {
   if (!KIE_API_KEY || !CONNECTOR_TOKEN) {
     return res.status(500).json({ error: 'Server is not configured. Set KIE_API_KEY and CONNECTOR_TOKEN environment variables.' });
   }
-  const auth = req.get('authorization') || '';
-  if (auth !== `Bearer ${CONNECTOR_TOKEN}`) return res.status(401).json({ error: 'Unauthorized' });
+  if (!tokenMatches(req.get('authorization'))) return res.status(401).json({ error: 'Unauthorized' });
 
   const server = makeServer();
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });

@@ -25,13 +25,13 @@
 7. Connect झाल्यावर Claude chat मध्ये connector enable करा. आधी `kie_list_models` वापरून उपलब्ध model IDs तपासा; मग `kie_chat` वापरून model ID आणि prompt द्या.
 
 ## सुरक्षा
-- KIE API key कधीही Claude connector header मध्ये किंवा GitHub code मध्ये ठेवू नका; ती hosting environment variable मध्येच ಇರावी.
+- KIE API key कधीही Claude connector header मध्ये किंवा GitHub code मध्ये ठेवू नका; ती hosting environment variable मध्येच असावी.
 - `CONNECTOR_TOKEN` कोणालाही शेअर करू नका. उघड झाल्यास लगेच बदलून redeploy करा.
 - सार्वजनिक repository मध्ये `.env` फाइल upload करू नका.
 
 ## Local test
 ```bash
 npm install
-# .env.example मधील values वापरून environment variables सेट करा
-npm start
+cp .env.example .env   # .env मध्ये तुमच्या values भरा
+node --env-file=.env server.js
 ```
