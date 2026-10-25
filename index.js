@@ -8,7 +8,7 @@ import {
 
 const app = express();
 
-// MCP सर्व्हर सेटअप
+// सर्व्हर सेटअप
 const server = new Server(
   {
     name: "kie-ai-mcp-server",
@@ -21,13 +21,13 @@ const server = new Server(
   }
 );
 
-// क्लॉडसाठी टूल्सची यादी (Kie.ai मॉडेल्स, Nemotron आणि Gemini सह)
+// मॉडेल्सची यादी
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
         name: "get_kie_models",
-        description: "Kie.ai वरील सर्व उपलब्ध AI मॉडेल्सची यादी मिळवा",
+        description: "Kie.ai आणि इतर उपलब्ध AI मॉडेल्सची यादी मिळवा",
         inputSchema: {
           type: "object",
           properties: {},
@@ -37,10 +37,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-// टूल एक्झिक्युट करताना काय होईल
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.name === "get_kie_models") {
-    // यामध्ये Nemotron आणि Gemini मॉडेल्स समाविष्ट केले आहेत
     const kieModels = [
       "Kie-Claude-Model",
       "Kie-GPT-Model",
@@ -54,7 +52,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       content: [
         {
           type: "text",
-          text: `Kie.ai वर उपलब्ध मॉडेल्स:\n- ${kieModels.join("\n- ")}`,
+          text: `उपलब्ध मॉडेल्स:\n- ${kieModels.join("\n- ")}`,
         },
       ],
     };
@@ -63,12 +61,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   throw new Error("Tool not found");
 });
 
-// Express द्वारे SSE ट्रान्सपोर्ट हँडल करणे
+// SSE ट्रान्सपोर्ट आणि रूट्स
 let transport;
 
 app.get("/mcp", async (req, res) => {
-  transport = new SSEServerTransport("/messages", res);
-  await server.connect(transport);
+  try {
+    transport = new SSEServerTransport("/messages", res);
+    await server.connect(transport);
+  } catch (error) {
+    console.error("SSE Connection Error:", error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 app.post("/messages", async (req, res) => {
@@ -79,7 +82,12 @@ app.post("/messages", async (req, res) => {
   }
 });
 
+// मुख्य होम पेज तपासण्यासाठी
+app.get("/", (req, res) => {
+  res.send("Kie AI MCP Server is running successfully!");
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Kie MCP Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
